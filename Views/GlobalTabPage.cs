@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using OldenEraTemplateEditor.Models;
 
 namespace OldenEraTemplateEditor.Views
 {
-    public class GlobalTabPage : TabPage
+    public class GlobalTabPage : EditorTabPage
     {
-        public GlobalTabPage()
+        public GlobalTabPage(Rmg rmg, Settings settings) : base(rmg, settings)
         {
+
             Text = "Global";
 
             var label = new Label()
@@ -20,6 +17,11 @@ namespace OldenEraTemplateEditor.Views
             };
 
             Controls.Add(label);
+        }
+
+        public override void RefreshData()
+        {
+            // TODO
         }
     }
 }

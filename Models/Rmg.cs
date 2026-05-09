@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
+using OldenEraTemplateEditor.Common;
 using OldenEraTemplateEditor.Views;
-using OldenEraTemplateEditor.Views.LayoutEngine;
 
 namespace OldenEraTemplateEditor.Models
 {
@@ -17,62 +13,47 @@ namespace OldenEraTemplateEditor.Models
         };
 
         public RmgTemplate rmgTemplate = new();
-        public Dictionary<string, ZoneNode> zoneNodeDict = new();
-        public Dictionary<string, ZoneConnection> zoneConnectionDict = new();
+        public List<VariantModel> variantList = new();
 
-        public void input(string json)
+        public void input(string path)
         {
-            var s = JsonSerializer.Deserialize<RmgTemplate>(json);
+            var json = File.ReadAllText(path);
+            var options = new JsonSerializerOptions();
+            options.Converters.Add(
+                new SingleOrArrayConverterFactory());
+            var s = JsonSerializer.Deserialize<RmgTemplate>(json, options);
             if (s is null) throw new InvalidDataException("File is empty or invalid.");
             rmgTemplate = s;
-            RebuildCanvasData();
+            if (rmgTemplate.Variants == null)
+            {
+                rmgTemplate.Variants = new();
+            }
+            variantList.Clear();
+            for (int i = 0; i < rmgTemplate.Variants?.Count; i++)
+            {
+                var variant = rmgTemplate.Variants?[i];
+                if (variant == null) return;
+
+                VariantModel variantModel = new();
+                variantModel.RebuildCanvasData(variant);
+                variantList.Add(variantModel);
+
+            }
         }
 
-        public string output()
+        public void output(string path)
         {
-            return JsonSerializer.Serialize(rmgTemplate, JsonOptions);
+            var json = JsonSerializer.Serialize(rmgTemplate, JsonOptions);
+            File.WriteAllText(path, json);
         }
 
         /// <summary>
         /// 从 Unfrozen 模型重建画布数据（ZoneNode / ZoneConnection）
         /// </summary>
-        public void RebuildCanvasData()
+        public void RebuildCanvasData(int i)
         {
-            zoneNodeDict.Clear();
-            zoneConnectionDict.Clear();
 
-            var variant = rmgTemplate.Variants?.FirstOrDefault();
-            if (variant == null) return;
 
-            // 构建 ZoneNode
-            if (variant.Zones != null)
-            {
-                foreach (var zone in variant.Zones)
-                {
-                    zoneNodeDict[zone.Name] = new ZoneNode
-                    {
-                        Name = zone.Name,
-                        Size = (float)(zone.Size ?? 1.0)
-                    };
-                }
-            }
-
-            // 构建 ZoneConnection
-            if (variant.Connections != null)
-            {
-                foreach (var conn in variant.Connections)
-                {
-                    string connName = conn.Name ?? $"{conn.From}_{conn.To}";
-                    zoneConnectionDict[connName] = new ZoneConnection
-                    {
-                        Name = connName,
-                        From = conn.From,
-                        To = conn.To,
-                        ConnectionType = conn.ConnectionType ?? "Direct",
-                        GuardValue = conn.GuardValue ?? 0
-                    };
-                }
-            }
         }
     }
 }

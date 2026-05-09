@@ -1,34 +1,30 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Threading.Tasks;
-
 namespace OldenEraTemplateEditor.Views
 {
     public class ToolStripFile
     {
         public bool NeedReset;
         public string? ResetFileName;
-        public string? content;
         public string? currentFilePath;
 
         public string label;
         public readonly IToolStripFileModel model;
+        public Action OnFileOpened;
 
-        public ToolStripFile(string label, IToolStripFileModel model)
+        public ToolStripFile(string label, IToolStripFileModel model, Action OnFileOpened)
         {
             NeedReset = false;
             ResetFileName = null;
             this.label = label;
             this.model = model;
+            this.OnFileOpened = OnFileOpened;
         }
-        public ToolStripFile(string label, IToolStripFileModel model, string ResetFileName)
+        public ToolStripFile(string label, IToolStripFileModel model, Action OnFileOpened, string ResetFileName)
         {
             NeedReset = true;
             this.ResetFileName = ResetFileName;
             this.label = label;
             this.model = model;
+            this.OnFileOpened = OnFileOpened;
         }
 
         public void OpenFile()
@@ -38,10 +34,9 @@ namespace OldenEraTemplateEditor.Views
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
+                model.input(dialog.FileName);
                 currentFilePath = dialog.FileName;
-                content = File.ReadAllText(dialog.FileName);
-                model.input(content);
-
+                OnFileOpened.Invoke();
                 MessageBox.Show("Open success !");
             }
         }
@@ -50,8 +45,7 @@ namespace OldenEraTemplateEditor.Views
         {
             if (currentFilePath != null)
             {
-                content = model.output();
-                File.WriteAllText(currentFilePath, content);
+                model.output(currentFilePath);
                 MessageBox.Show("Save success !");
             }
             else
@@ -67,17 +61,16 @@ namespace OldenEraTemplateEditor.Views
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                currentFilePath = dialog.FileName;
 
-                content = model.output();
-                File.WriteAllText(currentFilePath, content);
+                model.output(dialog.FileName);
+                currentFilePath = dialog.FileName;
                 MessageBox.Show("SaveAs success !");
             }
         }
 
         public void Reset()
         {
-
+            OnFileOpened.Invoke();
         }
 
         public void CreateButtonGroup(ToolStrip toolStrip)
@@ -104,7 +97,7 @@ namespace OldenEraTemplateEditor.Views
     }
     public interface IToolStripFileModel
     {
-        public void input(string json);
-        public string output();
+        public void input(string path);
+        public void output(string path);
     }
 }

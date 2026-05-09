@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System.ComponentModel;
+using OldenEraTemplateEditor.Common;
+
 
 namespace OldenEraTemplateEditor.Models
 {
@@ -26,6 +29,7 @@ namespace OldenEraTemplateEditor.Models
         [JsonPropertyName("buildingsConstructionSid")]
         public string? BuildingsConstructionSid { get; set; }
 
+        [TypeConverter(typeof(UniversalObjectConverter<TypedSelector>))]
         [JsonPropertyName("faction")]
         public TypedSelector? Faction { get; set; }
 
@@ -39,6 +43,7 @@ namespace OldenEraTemplateEditor.Models
         public bool? HoldCityWinCon { get; set; }
     }
 
+    [TypeConverter(typeof(ExpandableObjectConverter))] 
     public class TypedSelector
     {
         [JsonPropertyName("type")]

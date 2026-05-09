@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using OldenEraTemplateEditor.Models;
 using OldenEraTemplateEditor.Views;
 
@@ -37,14 +33,14 @@ namespace OldenEraTemplateEditor
             // =====================
             // Settings group
             // =====================
-            ToolStripFile SettingsToolStrip = new ToolStripFile("Settings", settings, "defaultSettings");
+            ToolStripFile SettingsToolStrip = new ToolStripFile("Settings", settings, () => this.RefreshData(), "defaultSettings");
             SettingsToolStrip.CreateButtonGroup(toolStrip);
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // =====================
             // Template group
             // =====================
-            ToolStripFile TemplateToolStrip = new ToolStripFile("Template", rmg);
+            ToolStripFile TemplateToolStrip = new ToolStripFile("Template", rmg, () => this.RefreshData());
             TemplateToolStrip.CreateButtonGroup(toolStrip);
 
             toolStrip.Dock = DockStyle.Top;
@@ -53,11 +49,22 @@ namespace OldenEraTemplateEditor
             tabControl = new TabControl();
             tabControl.Dock = DockStyle.Fill;
 
-            tabControl.TabPages.Add(new GlobalTabPage());
-            tabControl.TabPages.Add(new ZonesTabPage());
+            tabControl.TabPages.Add(new GlobalTabPage(rmg, settings));
+            tabControl.TabPages.Add(new ZonesTabPage(rmg, settings));
 
             Controls.Add(tabControl);
             Controls.Add(toolStrip);
+        }
+
+        public void RefreshData()
+        {
+            foreach (TabPage page in tabControl.TabPages)
+            {
+                if (page is EditorTabPage editorTabPage)
+                {
+                    editorTabPage.RefreshData();
+                }
+            }
         }
 
     }
