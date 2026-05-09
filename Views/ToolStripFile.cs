@@ -1,3 +1,5 @@
+using OldenEraTemplateEditor.Models;
+
 namespace OldenEraTemplateEditor.Views
 {
     public class ToolStripFile
@@ -30,7 +32,7 @@ namespace OldenEraTemplateEditor.Views
         public void OpenFile()
         {
             using var dialog = new OpenFileDialog();
-            dialog.Filter = "JSON Files (*.json)|*.json";
+            dialog.Filter = model.dialogFilter; 
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
@@ -57,7 +59,7 @@ namespace OldenEraTemplateEditor.Views
         public void SaveAsFile()
         {
             using var dialog = new SaveFileDialog();
-            dialog.Filter = "JSON Files (*.json)|*.json";
+            dialog.Filter = model.dialogFilter;
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
@@ -97,6 +99,8 @@ namespace OldenEraTemplateEditor.Views
     }
     public interface IToolStripFileModel
     {
+        string dialogFilter { get; }
+
         public void input(string path);
         public void output(string path);
     }

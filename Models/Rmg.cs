@@ -15,29 +15,50 @@ namespace OldenEraTemplateEditor.Models
         public RmgTemplate rmgTemplate = new();
         public List<VariantModel> variantList = new();
 
+        public string dialogFilter => "JSON Files (*.rmg.json)|*.rmg.json";
+
         public void input(string path)
         {
+            var posFilepath = path.Replace(".rmg.json", ".rmg.pos.json");
             var json = File.ReadAllText(path);
+
             var options = new JsonSerializerOptions();
             options.Converters.Add(
                 new SingleOrArrayConverterFactory());
             var s = JsonSerializer.Deserialize<RmgTemplate>(json, options);
             if (s is null) throw new InvalidDataException("File is empty or invalid.");
+
+            VariantModelList? variantModelList = null;
+            if (File.Exists(posFilepath))
+            {
+                var posJson = File.ReadAllText(posFilepath);
+                variantModelList = JsonSerializer.Deserialize<VariantModelList>(posJson, options);
+
+            }
+
             rmgTemplate = s;
             if (rmgTemplate.Variants == null)
             {
                 rmgTemplate.Variants = new();
             }
-            variantList.Clear();
-            for (int i = 0; i < rmgTemplate.Variants?.Count; i++)
+            if (variantModelList is null)
             {
-                var variant = rmgTemplate.Variants?[i];
-                if (variant == null) return;
 
-                VariantModel variantModel = new();
-                variantModel.RebuildCanvasData(variant);
-                variantList.Add(variantModel);
+                variantList.Clear();
+                for (int i = 0; i < rmgTemplate.Variants?.Count; i++)
+                {
+                    var variant = rmgTemplate.Variants?[i];
+                    if (variant == null) return;
 
+                    VariantModel variantModel = new();
+                    variantModel.RebuildCanvasData(variant);
+                    variantList.Add(variantModel);
+
+                }
+            }
+            else
+            {
+                variantList = variantModelList.VariantList;
             }
         }
 
@@ -45,15 +66,15 @@ namespace OldenEraTemplateEditor.Models
         {
             var json = JsonSerializer.Serialize(rmgTemplate, JsonOptions);
             File.WriteAllText(path, json);
+
+            var posFilepath = path.Replace(".rmg.json", ".rmg.pos.json");
+
+            VariantModelList variantModelList = new();
+            variantModelList.VariantList = this.variantList;
+            var posJson = JsonSerializer.Serialize(variantModelList, JsonOptions);
+            File.WriteAllText(posFilepath, posJson);
+
         }
 
-        /// <summary>
-        /// 从 Unfrozen 模型重建画布数据（ZoneNode / ZoneConnection）
-        /// </summary>
-        public void RebuildCanvasData(int i)
-        {
-
-
-        }
     }
 }
