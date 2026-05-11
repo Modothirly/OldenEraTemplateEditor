@@ -1,3 +1,5 @@
+using OldenEraTemplateEditor.Models;
+
 namespace OldenEraTemplateEditor.Views.LayoutEngine
 {
     /// <summary>
@@ -7,7 +9,7 @@ namespace OldenEraTemplateEditor.Views.LayoutEngine
     public class ForceDirectedLayout
     {
         // 布局参数
-        private const double RepulsionForce = 5000;    // 排斥力系数
+        private const double RepulsionForce = 20000;    // 排斥力系数
         private const double AttractionForce = 0.01;   // 吸引力系数
         private const double Damping = 0.9;            // 阻尼（每次迭代速度衰减）
         private const int MaxIterations = 300;          // 最大迭代次数
@@ -20,9 +22,13 @@ namespace OldenEraTemplateEditor.Views.LayoutEngine
         /// <param name="connections">连接关系列表</param>
         /// <param name="canvasWidth">画布宽度</param>
         /// <param name="canvasHeight">画布高度</param>
-        public void AutoLayout(List<ZoneNode> nodes, List<ZoneConnection> connections,
-            double canvasWidth = 800, double canvasHeight = 600)
+        public void AutoLayout(
+            VariantModel variantModel, double canvasWidth =1200, double canvasHeight = 900)
         {
+
+            List<ZoneNode> nodes = [.. variantModel.ZoneNodeDict.Values];
+            List<ZoneConnection> connections = [.. variantModel.ZoneConnectionDict.Values];
+
             if (nodes.Count == 0) return;
 
             // 1. 初始位置：均匀放在圆上
@@ -42,7 +48,10 @@ namespace OldenEraTemplateEditor.Views.LayoutEngine
                 node.Vy = 0;
             }
 
-            // 4. 平移到画布中心
+            // 4. 缩放：让节点铺满画布，留 10% 边距
+            ScaleToFit(nodes, canvasWidth * 0.9, canvasHeight * 0.9);
+
+            // 5. 平移到画布中心
             CenterOnCanvas(nodes, canvasWidth, canvasHeight);
         }
 
@@ -121,6 +130,33 @@ namespace OldenEraTemplateEditor.Views.LayoutEngine
             }
 
             return totalDelta;
+        }
+
+        private void ScaleToFit(List<ZoneNode> nodes, double targetW, double targetH)
+        {
+            if (nodes.Count <= 1) return;
+
+            double minX = nodes.Min(n => n.X);
+            double maxX = nodes.Max(n => n.X);
+            double minY = nodes.Min(n => n.Y);
+            double maxY = nodes.Max(n => n.Y);
+
+            double contentW = maxX - minX;
+            double contentH = maxY - minY;
+            if (contentW < 1 || contentH < 1) return;
+
+            double scaleX = targetW / contentW;
+            double scaleY = targetH / contentH;
+            double scale = Math.Min(scaleX, scaleY);  // 等比缩放，取小的
+
+            // 以中心为原点缩放
+            double cx = (minX + maxX) / 2;
+            double cy = (minY + maxY) / 2;
+            foreach (var node in nodes)
+            {
+                node.X = cx + (node.X - cx) * scale;
+                node.Y = cy + (node.Y - cy) * scale;
+            }
         }
 
         /// <summary>

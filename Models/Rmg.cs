@@ -1,6 +1,7 @@
 using System.Text.Json;
 using OldenEraTemplateEditor.Common;
 using OldenEraTemplateEditor.Views;
+using OldenEraTemplateEditor.Views.LayoutEngine;
 
 namespace OldenEraTemplateEditor.Models
 {
@@ -45,6 +46,7 @@ namespace OldenEraTemplateEditor.Models
             {
 
                 variantList.Clear();
+               var forceDirectedLayout = new ForceDirectedLayout();
                 for (int i = 0; i < rmgTemplate.Variants?.Count; i++)
                 {
                     var variant = rmgTemplate.Variants?[i];
@@ -53,7 +55,7 @@ namespace OldenEraTemplateEditor.Models
                     VariantModel variantModel = new();
                     variantModel.RebuildCanvasData(variant);
                     variantList.Add(variantModel);
-
+                    forceDirectedLayout.AutoLayout(variantModel);
                 }
             }
             else

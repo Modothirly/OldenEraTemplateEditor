@@ -1,4 +1,5 @@
 using OldenEraTemplateEditor.Models;
+using OldenEraTemplateEditor.Views.LayoutEngine;
 
 namespace OldenEraTemplateEditor.Views
 {
@@ -6,7 +7,7 @@ namespace OldenEraTemplateEditor.Views
     {
         private ToolStrip toolStrip;
         private TreeView treeView;
-        private Panel zonesPanel;
+        private ZonesPanel zonesPanel;
         private PropertyGrid propertyGrid;
 
         public ZonesTabPage(Rmg rmg, Settings settings) : base(rmg, settings)
@@ -20,6 +21,7 @@ namespace OldenEraTemplateEditor.Views
         {
             // TODO
             RefreshTree();
+            zonesPanel.Invalidate();
 
         }
         public void RefreshTree()
@@ -61,6 +63,7 @@ namespace OldenEraTemplateEditor.Views
             }
         }
 
+
         void InitUI()
         {
             var mainSplit = new SplitContainer();
@@ -74,7 +77,7 @@ namespace OldenEraTemplateEditor.Views
             this.treeView = new TreeView();
             treeView.Dock = DockStyle.Fill;
 
-            this.zonesPanel = new Panel();
+            this.zonesPanel = new ZonesPanel(rmg, (o) => { this.propertyGrid.SelectedObject = o; });
             zonesPanel.Dock = DockStyle.Fill;
             zonesPanel.BackColor = Color.FromArgb(250, 250, 250);
 
@@ -99,6 +102,7 @@ namespace OldenEraTemplateEditor.Views
             Controls.Add(toolStrip);
 
             treeView.AfterSelect += treeView_AfterSelect;
+
         }
 
         private void treeView_AfterSelect(object sender, TreeViewEventArgs e)
@@ -108,6 +112,17 @@ namespace OldenEraTemplateEditor.Views
                 this.propertyGrid.SelectedObject = e.Node.Tag;
 
             }
+            TreeNode node = e.Node;
+            while (node != null && node.Tag is not Variant)
+            {
+                node = node.Parent;
+            }
+            if (node != null && node.Tag is Variant)
+            {
+                zonesPanel.setCurrentVariantIndex(treeView.Nodes.IndexOf(node));
+            }
         }
+
+
     }
 }

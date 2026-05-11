@@ -7,12 +7,14 @@ namespace OldenEraTemplateEditor.Models
         public string dialogFilter => "JSON Files (*.json)|*.json";
         public void input(string json)
         {
-            throw new NotImplementedException();
+            // TODO
+            // throw new NotImplementedException();
         }
 
         public void output(string json)
         {
-            throw new NotImplementedException();
+            // TODO
+            // throw new NotImplementedException();
         }
     }
 }
