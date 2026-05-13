@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OldenEraTemplateEditor.Models;
+using OldenEraTemplateEditor.Views.Dialog;
 using OldenEraTemplateEditor.Views.LayoutEngine;
 using OldenEraTemplateEditor.Views.PanelSupport;
 
@@ -16,12 +17,14 @@ namespace OldenEraTemplateEditor.Views
         private int currentVariantIndex = 0;
         private Point viewOffset = new Point(0, 0);
 
-        private bool draggingCanvas = false;
-        private bool draggingZone = false;
+        public PanelMod PanelMod = PanelMod.None;
 
         private Point lastMouse;
 
         private Selection selection;
+
+        private string? connectionFrom;  // 连线起点 zone name
+        private Point tempLineEnd;       // 临时线终点（屏幕坐标）
 
         public event Action<object> SelectionChanged;
 
@@ -34,7 +37,7 @@ namespace OldenEraTemplateEditor.Views
             this.MouseMove += panel_MouseMove;
             this.MouseUp += panel_MouseUp;
             this.SelectionChanged = SelectionChanged;
-            this.MouseLeave += (s, e) => { draggingCanvas = false; draggingZone = false; };
+            this.MouseLeave += (s, e) => panel_MouseUp(s, null);
         }
 
         public void setCurrentVariantIndex(int index)
@@ -56,11 +59,12 @@ namespace OldenEraTemplateEditor.Views
             var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
             var variantModel = rmg.variantList[currentVariantIndex];
 
+            ConnectionSupport ConnectionSupport = new();
             foreach (Connection connection in variant.Connections)
             {
-                ConnectionSupport.drawConnection(connection, variantModel.ZoneNodeDict, g);
-
+                ConnectionSupport.collectConnection(connection, variantModel.ZoneNodeDict);
             }
+            ConnectionSupport.draw(variantModel.ZoneNodeDict, g);
             foreach (Zone zone in variant.Zones)
             {
                 ZoneNode zoneNode = variantModel.ZoneNodeDict[zone.Name];
@@ -68,7 +72,37 @@ namespace OldenEraTemplateEditor.Views
                 ZoneSupport.drawZone(zone, zoneNode, g);
             }
 
+            // 画临时连线
+            if (connectionFrom != null && variantModel.ZoneNodeDict.ContainsKey(connectionFrom))
+            {
+                var fromNode = variantModel.ZoneNodeDict[connectionFrom];
+                var pen = new Pen(Color.Red, 2) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+                g.DrawLine(pen, (float)fromNode.X, (float)fromNode.Y,
+                    tempLineEnd.X - viewOffset.X, tempLineEnd.Y - viewOffset.Y);
+                pen.Dispose();
+            }
 
+
+        }
+
+        private void ShowSelectionMenu<T>(List<T> items, Func<T, string> getName, Action<T> onSelect, Point location)
+        {
+            if (items.Count == 1)
+            {
+                onSelect(items[0]);
+                return;
+            }
+            var menu = new ContextMenuStrip();
+            foreach (var item in items)
+            {
+                var menuItem = menu.Items.Add(getName(item));
+                menuItem.Tag = item;
+                menuItem.Click += (s, args) =>
+                {
+                    onSelect((T)((ToolStripItem)s).Tag);
+                };
+            }
+            menu.Show(this, location);
         }
 
         private void panel_MouseDown(object sender, MouseEventArgs e)
@@ -77,39 +111,74 @@ namespace OldenEraTemplateEditor.Views
             {
                 return;
             }
-            var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
-            var variantModel = rmg.variantList[currentVariantIndex];
-
-            lastMouse = e.Location;
-            selection = Selection.HitTest(e.Location, viewOffset, variant, variantModel);
-
-            switch (selection.Type)
+            if (PanelMod == PanelMod.AddZone)
             {
-                case SelectionType.None:
-                    draggingCanvas = true;
-                    break;
-                case SelectionType.Zone:
-                    draggingZone = true;
-                    SelectionChanged(selection.zone);
-                    break;
-                case SelectionType.Connection:
-                    SelectionChanged(selection.connection);
-                    break;
+                ZoneFormDto ZoneFormDto = new();
+                ZoneFormDialog ZoneFormDialog = new(ZoneFormDto);
+                if (ZoneFormDialog.ShowDialog() == DialogResult.OK)
+                {
+                    rmg.addZone(ZoneFormDto, currentVariantIndex, e.X - viewOffset.X, e.Y - viewOffset.Y);
+                    this.Invalidate();
+                }
             }
+            else if (PanelMod == PanelMod.AddConnection)
+            {
+                var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
+                var variantModel = rmg.variantList[currentVariantIndex];
+                selection = Selection.HitTest(e.Location, viewOffset, variant, variantModel);
+                if (selection.Type == SelectionType.Zone)
+                {
+                    connectionFrom = selection.zone.Name;
+                    tempLineEnd = e.Location;
+                }
+            }
+            else
+            {
+                var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
+                var variantModel = rmg.variantList[currentVariantIndex];
+
+                lastMouse = e.Location;
+                selection = Selection.HitTest(e.Location, viewOffset, variant, variantModel);
+
+                switch (selection.Type)
+                {
+                    case SelectionType.None:
+                        PanelMod = PanelMod.DraggingCanvas;
+                        break;
+                    case SelectionType.Zone:
+                        PanelMod = PanelMod.DraggingZone;
+                        SelectionChanged(selection.zone);
+                        break;
+                    case SelectionType.Connection:
+                        ShowSelectionMenu(selection.connections,
+                            c => (c.Name ?? $"{c.From}_{c.To}") + "(" + c.GuardValue + ")",
+                            c => SelectionChanged(c),
+                            e.Location);
+                        break;
+                }
+            }
+
         }
 
         private void panel_MouseMove(object sender, MouseEventArgs e)
         {
             int dx = e.X - lastMouse.X;
             int dy = e.Y - lastMouse.Y;
-            if (draggingZone && selection.Type == SelectionType.Zone)
+
+            // 拖拽连线时画临时线
+            if (PanelMod == PanelMod.AddConnection && connectionFrom != null)
+            {
+                tempLineEnd = e.Location;
+                this.Invalidate();
+            }
+            else if (PanelMod == PanelMod.DraggingZone && selection.Type == SelectionType.Zone)
             {
                 selection.zoneNode.X += dx;
                 selection.zoneNode.Y += dy;
 
                 this.Invalidate();
             }
-            else if (draggingCanvas)
+            else if (PanelMod == PanelMod.DraggingCanvas)
             {
                 viewOffset.X += dx;
                 viewOffset.Y += dy;
@@ -119,10 +188,33 @@ namespace OldenEraTemplateEditor.Views
         }
         private void panel_MouseUp(object sender, MouseEventArgs e)
         {
-            draggingZone = false;
-            draggingCanvas = false;
+            if (PanelMod == PanelMod.AddConnection && connectionFrom != null && e != null)
+            {
+                var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
+                var variantModel = rmg.variantList[currentVariantIndex];
+                var hit = Selection.HitTest(e.Location, viewOffset, variant, variantModel);
+                if (hit.Type == SelectionType.Zone && hit.zone.Name != connectionFrom)
+                {
+                    ConnectionFormDto ConnectionFormDto = new()
+                    {
+                        From = connectionFrom,
+                        To = hit.zone.Name
+                    };
+                    ConnectionFormDialog ConnectionFormDialog = new(ConnectionFormDto);
+                    if (ConnectionFormDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // TODO: 调用 rmg.addConnection(ConnectionFormDto, currentVariantIndex)
+                        this.Invalidate();
+                    }
+                }
+                connectionFrom = null;
+                this.Invalidate();
+            }
+            else if (PanelMod == PanelMod.DraggingCanvas || PanelMod == PanelMod.DraggingZone)
+            {
+                PanelMod = PanelMod.None;
+            }
         }
-
 
     }
 }

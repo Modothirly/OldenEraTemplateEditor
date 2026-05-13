@@ -1,6 +1,8 @@
 using System.Text.Json;
 using OldenEraTemplateEditor.Common;
+using OldenEraTemplateEditor.Services;
 using OldenEraTemplateEditor.Views;
+using OldenEraTemplateEditor.Views.Dialog;
 using OldenEraTemplateEditor.Views.LayoutEngine;
 
 namespace OldenEraTemplateEditor.Models
@@ -46,7 +48,7 @@ namespace OldenEraTemplateEditor.Models
             {
 
                 variantList.Clear();
-               var forceDirectedLayout = new ForceDirectedLayout();
+                var forceDirectedLayout = new ForceDirectedLayout();
                 for (int i = 0; i < rmgTemplate.Variants?.Count; i++)
                 {
                     var variant = rmgTemplate.Variants?[i];
@@ -78,5 +80,9 @@ namespace OldenEraTemplateEditor.Models
 
         }
 
+        public void addZone(ZoneFormDto ZoneFormDto, int variantIndex, int x, int y)
+        {
+            ZoneService.AddZone(this, ZoneFormDto, variantIndex, x, y);
+        }
     }
 }

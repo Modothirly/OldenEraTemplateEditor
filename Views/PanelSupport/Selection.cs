@@ -14,8 +14,8 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
         public SelectionType Type = SelectionType.None;
         public ZoneNode zoneNode;
         public Zone zone;
-        public ZoneConnection zoneConnection;
-        public Connection connection;
+        public List<ZoneConnection> zoneConnections;
+        public List<Connection> connections;
 
         public static Selection HitTest(Point mouse, Point viewOffset, Variant variant, VariantModel variantModel)
         {
@@ -43,6 +43,8 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
                 }
             }
 
+            List<Connection> connections = new();
+            List<ZoneConnection> zoneConnections = new();
             // 2. 再检测连线（点到线的距离）
             foreach (var conn in variant.Connections)
             {
@@ -53,13 +55,18 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
                     from.X, from.Y,
                     to.X, to.Y) < 6)
                 {
-                    return new Selection
-                    {
-                        Type = SelectionType.Connection,
-                        connection = conn,
-                        zoneConnection = findZoneConnection(conn, variantModel)
-                    };
+                    connections.Add(conn);
+                    zoneConnections.Add(findZoneConnection(conn, variantModel));
                 }
+            }
+            if (connections.Count > 0)
+            {
+                return new Selection
+                {
+                    Type = SelectionType.Connection,
+                    connections = connections,
+                    zoneConnections = zoneConnections
+                };
             }
 
             return new Selection { Type = SelectionType.None };

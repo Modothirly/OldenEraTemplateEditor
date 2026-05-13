@@ -1,5 +1,6 @@
 using OldenEraTemplateEditor.Models;
 using OldenEraTemplateEditor.Views.LayoutEngine;
+using OldenEraTemplateEditor.Views.PanelSupport;
 
 namespace OldenEraTemplateEditor.Views
 {
@@ -95,10 +96,8 @@ namespace OldenEraTemplateEditor.Views
 
             toolStrip = new ToolStrip();
             toolStrip.Dock = DockStyle.Top;
+            initToolStrip();
 
-            // TODO
-            toolStrip.Items.Add(new ToolStripButton("Add Node"));
-            toolStrip.Items.Add(new ToolStripButton("Auto Layout"));
             Controls.Add(toolStrip);
 
             treeView.AfterSelect += treeView_AfterSelect;
@@ -123,6 +122,44 @@ namespace OldenEraTemplateEditor.Views
             }
         }
 
+        private void initToolStrip()
+        {
+            var AddZoneBtn = new ToolStripButton("➕Zone");
+            toolStrip.Items.Add(AddZoneBtn);
+            var AddConnectionBtn = new ToolStripButton("🔗Connection");
+            toolStrip.Items.Add(AddConnectionBtn);
 
+            AddZoneBtn.Click += (s, e) => TogglePanelMode(AddZoneBtn, PanelMod.AddZone);
+            AddConnectionBtn.Click += (s, e) => TogglePanelMode(AddConnectionBtn, PanelMod.AddConnection);
+
+        }
+        private void TogglePanelMode(ToolStripButton button, PanelMod mode)
+        {
+            if (zonesPanel.PanelMod == mode)
+            {
+                zonesPanel.PanelMod = PanelMod.None;
+            }
+            else
+            {
+                zonesPanel.PanelMod = mode;
+            }
+
+            RefreshToolButtons(button, mode);
+        }
+        private void RefreshToolButtons(ToolStripButton button, PanelMod mod)
+        {
+            foreach (var item in toolStrip.Items)
+            {
+                if (item is ToolStripButton btn)
+                {
+                    btn.Checked = false;
+                }
+            }
+            if (zonesPanel.PanelMod == mod)
+            {
+                button.Checked = true;
+            }
+
+        }
     }
 }
