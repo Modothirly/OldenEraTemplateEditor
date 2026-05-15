@@ -29,10 +29,18 @@ namespace OldenEraTemplateEditor.Views
             this.OnFileOpened = OnFileOpened;
         }
 
+        public void NewFile()
+        {
+            currentFilePath = null;
+            model.neww();
+            OnFileOpened.Invoke();
+            MessageBox.Show("new success !");
+        }
+
         public void OpenFile()
         {
             using var dialog = new OpenFileDialog();
-            dialog.Filter = model.dialogFilter; 
+            dialog.Filter = model.dialogFilter;
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
@@ -84,6 +92,10 @@ namespace OldenEraTemplateEditor.Views
                 toolStrip.Items.Add(resetBtn);
             }
 
+            var newBtn = new ToolStripButton("New " + this.label);
+            newBtn.Click += (s, e) => this.NewFile();
+            toolStrip.Items.Add(newBtn);
+
             var openBtn = new ToolStripButton("Open " + this.label);
             openBtn.Click += (s, e) => this.OpenFile();
             toolStrip.Items.Add(openBtn);
@@ -101,6 +113,7 @@ namespace OldenEraTemplateEditor.Views
     {
         string dialogFilter { get; }
 
+        public void neww();
         public void input(string path);
         public void output(string path);
     }

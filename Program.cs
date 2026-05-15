@@ -18,7 +18,6 @@ namespace OldenEraTemplateEditor
         private ToolStrip toolStrip;
         private TabControl tabControl;
         private Rmg rmg = new();
-        private Settings settings = new();
 
         public MainForm()
         {
@@ -30,12 +29,6 @@ namespace OldenEraTemplateEditor
         {
             // 工具栏容器
             toolStrip = new ToolStrip();
-            // =====================
-            // Settings group
-            // =====================
-            ToolStripFile SettingsToolStrip = new ToolStripFile("Settings", settings, () => this.RefreshData(), "defaultSettings");
-            SettingsToolStrip.CreateButtonGroup(toolStrip);
-            toolStrip.Items.Add(new ToolStripSeparator());
 
             // =====================
             // Template group
@@ -49,8 +42,11 @@ namespace OldenEraTemplateEditor
             tabControl = new TabControl();
             tabControl.Dock = DockStyle.Fill;
 
-            tabControl.TabPages.Add(new GlobalTabPage(rmg, settings));
-            tabControl.TabPages.Add(new ZonesTabPage(rmg, settings));
+            tabControl.TabPages.Add(new GlobalTabPage(rmg));
+            tabControl.TabPages.Add(new MandatoryContentTabPage(rmg));
+            tabControl.TabPages.Add(new ContentCountLimitsTabPage(rmg));
+            tabControl.TabPages.Add(new ZoneLayoutsTabPage(rmg));
+            tabControl.TabPages.Add(new ZonesTabPage(rmg));
 
             Controls.Add(tabControl);
             Controls.Add(toolStrip);

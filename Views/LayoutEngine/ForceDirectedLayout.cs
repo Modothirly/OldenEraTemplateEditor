@@ -18,16 +18,10 @@ namespace OldenEraTemplateEditor.Views.LayoutEngine
         /// <summary>
         /// 对给定的节点和连接执行自动布局，结果写回节点的 X/Y
         /// </summary>
-        /// <param name="nodes">区域节点列表</param>
-        /// <param name="connections">连接关系列表</param>
-        /// <param name="canvasWidth">画布宽度</param>
-        /// <param name="canvasHeight">画布高度</param>
         public void AutoLayout(
-            VariantModel variantModel, double canvasWidth =1200, double canvasHeight = 900)
+            VariantModel variantModel, List<Connection> connections, double canvasWidth = 1200, double canvasHeight = 900)
         {
-
             List<ZoneNode> nodes = [.. variantModel.ZoneNodeDict.Values];
-            List<ZoneConnection> connections = [.. variantModel.ZoneConnectionDict.Values];
 
             if (nodes.Count == 0) return;
 
@@ -73,7 +67,7 @@ namespace OldenEraTemplateEditor.Views.LayoutEngine
         /// <summary>
         /// 执行一轮力计算并更新位置，返回总位移量
         /// </summary>
-        private double ApplyForces(List<ZoneNode> nodes, List<ZoneConnection> connections)
+        private double ApplyForces(List<ZoneNode> nodes, List<Connection> connections)
         {
             double totalDelta = 0;
 

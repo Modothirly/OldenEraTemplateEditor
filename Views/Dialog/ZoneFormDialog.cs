@@ -28,7 +28,9 @@ namespace OldenEraTemplateEditor.Views.Dialog
         public int cityAmount { get; set; }
         public double? GuardMultiplier { get; set; }
         public int? GuardedContentValue { get; set; }
+        public int? GuardedContentValuePerArea { get; set; }
         public int? UnguardedContentValue { get; set; }
+        public int? UnguardedContentValuePerArea { get; set; }
         public int? ResourcesValue { get; set; }
     }
 }

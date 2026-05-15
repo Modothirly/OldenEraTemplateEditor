@@ -12,5 +12,7 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
         DraggingZone,
         AddZone,
         AddConnection,
+        DeleteZone,
+        DeleteConnection,
     }
 }

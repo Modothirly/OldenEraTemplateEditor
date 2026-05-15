@@ -7,13 +7,10 @@ namespace OldenEraTemplateEditor.Models
     {
         [JsonPropertyName("zoneNodeDict")]
         public Dictionary<string, ZoneNode> ZoneNodeDict { get; set; } = new();
-        [JsonPropertyName("zoneConnectionDict")]
-        public Dictionary<string, ZoneConnection> ZoneConnectionDict { get; set; } = new();
 
         public void RebuildCanvasData(Variant variant)
         {
             ZoneNodeDict.Clear();
-            ZoneConnectionDict.Clear();
 
             // 构建 ZoneNode
             if (variant.Zones != null)
@@ -32,23 +29,7 @@ namespace OldenEraTemplateEditor.Models
                 variant.Zones = new();
             }
 
-            // 构建 ZoneConnection
-            if (variant.Connections != null)
-            {
-                foreach (var conn in variant.Connections)
-                {
-                    string connName = conn.Name ?? $"{conn.From}_{conn.To}";
-                    ZoneConnectionDict[connName] = new ZoneConnection
-                    {
-                        Name = connName,
-                        From = conn.From,
-                        To = conn.To,
-                        ConnectionType = conn.ConnectionType ?? "Direct",
-                        GuardValue = conn.GuardValue ?? 0
-                    };
-                }
-            }
-            else
+            if (variant.Connections == null)
             {
                 variant.Connections = new();
             }

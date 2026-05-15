@@ -11,7 +11,7 @@ namespace OldenEraTemplateEditor.Views
         private ZonesPanel zonesPanel;
         private PropertyGrid propertyGrid;
 
-        public ZonesTabPage(Rmg rmg, Settings settings) : base(rmg, settings)
+        public ZonesTabPage(Rmg rmg) : base(rmg)
         {
             Text = "Zones";
             InitUI();
@@ -124,13 +124,39 @@ namespace OldenEraTemplateEditor.Views
 
         private void initToolStrip()
         {
+            var AddVariant = new ToolStripButton("➕Variant");
+            toolStrip.Items.Add(AddVariant);
+            var DeleteVariant = new ToolStripButton("➖Variant");
+            toolStrip.Items.Add(DeleteVariant);
             var AddZoneBtn = new ToolStripButton("➕Zone");
             toolStrip.Items.Add(AddZoneBtn);
-            var AddConnectionBtn = new ToolStripButton("🔗Connection");
+            var DeleteZoneBtn = new ToolStripButton("➖Zone");
+            toolStrip.Items.Add(DeleteZoneBtn);
+            var AddConnectionBtn = new ToolStripButton("➕Connection");
             toolStrip.Items.Add(AddConnectionBtn);
+            var DeleteConnectionBtn = new ToolStripButton("➖Connection");
+            toolStrip.Items.Add(DeleteConnectionBtn);
 
+            AddVariant.Click += (s, e) =>
+            {
+                int index = rmg.AddVariant();
+                RefreshData();
+                zonesPanel.setCurrentVariantIndex(index);
+            };
+            DeleteVariant.Click += (s, e) =>
+            {
+                int index = zonesPanel.getCurrentVariantIndex();
+                if (index >= 0 && index < rmg.rmgTemplate.Variants.Count)
+                {
+                    rmg.DeleteVariant(index);
+                    RefreshData();
+                    zonesPanel.setCurrentVariantIndex(0);
+                }
+            };
             AddZoneBtn.Click += (s, e) => TogglePanelMode(AddZoneBtn, PanelMod.AddZone);
             AddConnectionBtn.Click += (s, e) => TogglePanelMode(AddConnectionBtn, PanelMod.AddConnection);
+            DeleteZoneBtn.Click += (s, e) => TogglePanelMode(DeleteZoneBtn, PanelMod.DeleteZone);
+            DeleteConnectionBtn.Click += (s, e) => TogglePanelMode(DeleteConnectionBtn, PanelMod.DeleteConnection);
 
         }
         private void TogglePanelMode(ToolStripButton button, PanelMod mode)

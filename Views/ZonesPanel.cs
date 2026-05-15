@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices;
 using System.Linq;
 using System.Threading.Tasks;
 using OldenEraTemplateEditor.Models;
+using OldenEraTemplateEditor.Services;
 using OldenEraTemplateEditor.Views.Dialog;
 using OldenEraTemplateEditor.Views.LayoutEngine;
 using OldenEraTemplateEditor.Views.PanelSupport;
@@ -38,6 +40,11 @@ namespace OldenEraTemplateEditor.Views
             this.MouseUp += panel_MouseUp;
             this.SelectionChanged = SelectionChanged;
             this.MouseLeave += (s, e) => panel_MouseUp(s, null);
+        }
+
+        public int getCurrentVariantIndex()
+        {
+            return currentVariantIndex;
         }
 
         public void setCurrentVariantIndex(int index)
@@ -117,7 +124,7 @@ namespace OldenEraTemplateEditor.Views
                 ZoneFormDialog ZoneFormDialog = new(ZoneFormDto);
                 if (ZoneFormDialog.ShowDialog() == DialogResult.OK)
                 {
-                    rmg.addZone(ZoneFormDto, currentVariantIndex, e.X - viewOffset.X, e.Y - viewOffset.Y);
+                    rmg.AddZone(ZoneFormDto, currentVariantIndex, e.X - viewOffset.X, e.Y - viewOffset.Y);
                     this.Invalidate();
                 }
             }
@@ -130,6 +137,36 @@ namespace OldenEraTemplateEditor.Views
                 {
                     connectionFrom = selection.zone.Name;
                     tempLineEnd = e.Location;
+                }
+            }
+            else if (PanelMod == PanelMod.DeleteZone)
+            {
+                var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
+                var variantModel = rmg.variantList[currentVariantIndex];
+                selection = Selection.HitTest(e.Location, viewOffset, variant, variantModel);
+                if (selection.Type == SelectionType.Zone)
+                {
+                    var deleteZoneName = selection.zone.Name;
+                    rmg.DeleteZone(deleteZoneName, currentVariantIndex);
+                    this.Invalidate();
+                }
+            }
+            else if (PanelMod == PanelMod.DeleteConnection)
+            {
+                var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
+                var variantModel = rmg.variantList[currentVariantIndex];
+                selection = Selection.HitTest(e.Location, viewOffset, variant, variantModel);
+                if (selection.Type == SelectionType.Connection)
+                {
+                    ShowSelectionMenu(selection.connections,
+                           c => (c.Name ?? $"{c.From}_{c.To}") + "(" + c.GuardValue + ")",
+                           c =>
+                           {
+                               rmg.DeleteConnection(c.Name, currentVariantIndex);
+                               this.Invalidate();
+                           },
+                           e.Location);
+
                 }
             }
             else
@@ -203,7 +240,7 @@ namespace OldenEraTemplateEditor.Views
                     ConnectionFormDialog ConnectionFormDialog = new(ConnectionFormDto);
                     if (ConnectionFormDialog.ShowDialog() == DialogResult.OK)
                     {
-                        // TODO: 调用 rmg.addConnection(ConnectionFormDto, currentVariantIndex)
+                        rmg.AddConnection(ConnectionFormDto, currentVariantIndex);
                         this.Invalidate();
                     }
                 }

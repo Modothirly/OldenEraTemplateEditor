@@ -14,7 +14,6 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
         public SelectionType Type = SelectionType.None;
         public ZoneNode zoneNode;
         public Zone zone;
-        public List<ZoneConnection> zoneConnections;
         public List<Connection> connections;
 
         public static Selection HitTest(Point mouse, Point viewOffset, Variant variant, VariantModel variantModel)
@@ -44,10 +43,13 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
             }
 
             List<Connection> connections = new();
-            List<ZoneConnection> zoneConnections = new();
             // 2. 再检测连线（点到线的距离）
             foreach (var conn in variant.Connections)
             {
+                if (!variantModel.ZoneNodeDict.ContainsKey(conn.From) ||
+                    !variantModel.ZoneNodeDict.ContainsKey(conn.To))
+                    continue;
+
                 var from = variantModel.ZoneNodeDict[conn.From];
                 var to = variantModel.ZoneNodeDict[conn.To];
 
@@ -56,7 +58,6 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
                     to.X, to.Y) < 6)
                 {
                     connections.Add(conn);
-                    zoneConnections.Add(findZoneConnection(conn, variantModel));
                 }
             }
             if (connections.Count > 0)
@@ -64,8 +65,7 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
                 return new Selection
                 {
                     Type = SelectionType.Connection,
-                    connections = connections,
-                    zoneConnections = zoneConnections
+                    connections = connections
                 };
             }
 
@@ -100,18 +100,6 @@ namespace OldenEraTemplateEditor.Views.PanelSupport
                 if (zone.Name == zoneNode.Name)
                 {
                     return zone;
-                }
-            }
-            return null;
-        }
-
-        private static ZoneConnection findZoneConnection(Connection connection, VariantModel variantModel)
-        {
-            foreach (ZoneConnection zoneConnection in variantModel.ZoneConnectionDict.Values)
-            {
-                if (zoneConnection.Name == connection.Name)
-                {
-                    return zoneConnection;
                 }
             }
             return null;

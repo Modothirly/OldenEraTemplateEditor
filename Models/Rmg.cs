@@ -20,6 +20,12 @@ namespace OldenEraTemplateEditor.Models
 
         public string dialogFilter => "JSON Files (*.rmg.json)|*.rmg.json";
 
+        public void neww()
+        {
+            rmgTemplate = new();
+            variantList = new();
+        }
+
         public void input(string path)
         {
             var posFilepath = path.Replace(".rmg.json", ".rmg.pos.json");
@@ -57,7 +63,7 @@ namespace OldenEraTemplateEditor.Models
                     VariantModel variantModel = new();
                     variantModel.RebuildCanvasData(variant);
                     variantList.Add(variantModel);
-                    forceDirectedLayout.AutoLayout(variantModel);
+                    forceDirectedLayout.AutoLayout(variantModel, variant.Connections);
                 }
             }
             else
@@ -80,9 +86,78 @@ namespace OldenEraTemplateEditor.Models
 
         }
 
-        public void addZone(ZoneFormDto ZoneFormDto, int variantIndex, int x, int y)
+        public int AddVariant()
+        {
+            return ZoneService.AddVariant(this);
+        }
+        public void DeleteVariant(int variantIndex)
+        {
+            ZoneService.DeleteVariant(this, variantIndex);
+        }
+
+        public void AddZone(ZoneFormDto ZoneFormDto, int variantIndex, int x, int y)
         {
             ZoneService.AddZone(this, ZoneFormDto, variantIndex, x, y);
+        }
+        public void AddConnection(ConnectionFormDto ConnectionFormDto, int variantIndex)
+        {
+            ZoneService.AddConnection(this, ConnectionFormDto, variantIndex);
+        }
+        public void DeleteZone(string ZoneName, int variantIndex)
+        {
+            ZoneService.DeleteZone(this, ZoneName, variantIndex);
+        }
+        public void DeleteConnection(string ConnectionName, int variantIndex)
+        {
+            ZoneService.DeleteConnection(this, ConnectionName, variantIndex);
+        }
+
+        public void AddMandatoryContentGroup(MandatoryContentDto dto)
+        {
+            ContentService.AddMandatoryContentGroup(this, dto);
+        }
+        public void AddMandatoryContentItem(MandatoryContentDto dto)
+        {
+            ContentService.AddMandatoryContentItem(this, dto);
+        }
+        public bool DeleteMandatoryContentGroup(MandatoryContentGroup group)
+        {
+            return ContentService.DeleteMandatoryContentGroup(this, group);
+        }
+        public void DeleteMandatoryContentItem(MandatoryContentGroup group, ContentItem item)
+        {
+            ContentService.DeleteMandatoryContentItem(group, item);
+        }
+
+        public void AddContentCountLimit(ContentCountLimitGroupDto dto)
+        {
+            ContentService.AddContentCountLimit(this, dto);
+        }
+        public void AddContentCountLimitItem(ContentCountLimit limit, ContentCountLimitItemDto dto)
+        {
+            ContentService.AddContentCountLimitItem(limit, dto);
+        }
+        public bool DeleteContentCountLimit(ContentCountLimit limit)
+        {
+            return ContentService.DeleteContentCountLimit(this, limit);
+        }
+        public void DeleteContentCountLimitItem(ContentCountLimit limit, ContentSidLimit item)
+        {
+            ContentService.DeleteContentCountLimitItem(limit, item);
+        }
+
+        public void AddZoneLayout(string name)
+        {
+            ContentService.AddZoneLayout(this, name);
+        }
+        public bool DeleteZoneLayout(ZoneLayout layout)
+        {
+            return ContentService.DeleteZoneLayout(this, layout);
+        }
+
+        public void ApplyGlobalDto(GlobalDto dto)
+        {
+            RmgService.ApplyGlobalDto(this, dto);
         }
     }
 }
