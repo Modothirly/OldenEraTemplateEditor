@@ -66,19 +66,7 @@ namespace OldenEraTemplateEditor.Views
             var variant = rmg.rmgTemplate.Variants[currentVariantIndex];
             var variantModel = rmg.variantList[currentVariantIndex];
 
-            ConnectionSupport ConnectionSupport = new();
-            foreach (Connection connection in variant.Connections)
-            {
-                ConnectionSupport.collectConnection(connection, variantModel.ZoneNodeDict);
-            }
-            ConnectionSupport.draw(variantModel.ZoneNodeDict, g);
-            foreach (Zone zone in variant.Zones)
-            {
-                ZoneNode zoneNode = variantModel.ZoneNodeDict[zone.Name];
-
-                ZoneSupport.drawZone(zone, zoneNode, g);
-            }
-
+            ImageSupport.drawImage(variant, variantModel, g);
             // 画临时连线
             if (connectionFrom != null && variantModel.ZoneNodeDict.ContainsKey(connectionFrom))
             {

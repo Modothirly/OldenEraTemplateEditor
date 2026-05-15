@@ -4,6 +4,7 @@ using OldenEraTemplateEditor.Services;
 using OldenEraTemplateEditor.Views;
 using OldenEraTemplateEditor.Views.Dialog;
 using OldenEraTemplateEditor.Views.LayoutEngine;
+using OldenEraTemplateEditor.Views.PanelSupport;
 
 namespace OldenEraTemplateEditor.Models
 {
@@ -83,6 +84,11 @@ namespace OldenEraTemplateEditor.Models
             variantModelList.VariantList = this.variantList;
             var posJson = JsonSerializer.Serialize(variantModelList, JsonOptions);
             File.WriteAllText(posFilepath, posJson);
+            var imageFilepath = path.Replace(".rmg.json", ".png");
+            if (rmgTemplate.Variants.Count > 0)
+            {
+                ImageSupport.outputImage(rmgTemplate.Variants[0], variantList[0], imageFilepath);
+            }
 
         }
 
